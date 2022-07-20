@@ -29,3 +29,10 @@ INSERT INTO [dbo].[TB_DIM_CATEGORIA_PRODUTO] VALUES (0,0,'SCD2',NULL, NULL, NULL
 
 select * from dbo.TB_DIM_CATEGORIA_PRODUTO
 
+select * from dbo.TB_DIM_PRODUTO where COD_PRODUTO_NK = 11
+
+use STG
+select * from dbo.TB_STG_PRODUTO where COD_PRODUTO_OLTP = 11
+
+use dw
+select * from dbo.TB_DIM_CATEGORIA_PRODUTO where COD_CATEGORIA_PRODUTO_NK = 80
