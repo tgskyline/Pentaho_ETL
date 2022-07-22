@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>TB_DIM_PRODUTO</name>
+    <name>TB_FATO_PEDIDO</name>
     <description/>
     <extended_description/>
     <trans_version/>
     <trans_type>Normal</trans_type>
+    <trans_status>0</trans_status>
     <directory>/</directory>
     <parameters>
     </parameters>
@@ -427,10 +428,10 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2022/07/19 21:19:09.399</created_date>
+    <created_date>2022/07/21 22:11:34.504</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2022/07/19 21:19:09.399</modified_date>
-    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <modified_date>2022/07/21 22:11:34.504</modified_date>
+    <key_for_session_key/>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -563,119 +564,33 @@
   </connection>
   <order>
     <hop>
-      <from>TB_STG_PRODUTO </from>
-      <to>TB_DIM_CATEGORIA_PRODUTO</to>
+      <from>ORIGEM_FATO</from>
+      <to>TB_DIM_ESTADO</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>TB_DIM_CATEGORIA_PRODUTO</from>
+      <from>TB_DIM_ESTADO</from>
+      <to>TB_DIM_CLIENTE</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>TB_DIM_CLIENTE</from>
+      <to>TB_DIM_TIPO_CLIENTE</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>TB_DIM_TIPO_CLIENTE</from>
       <to>TB_DIM_PRODUTO</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>TB_DIM_PRODUTO</from>
+      <to>TB_FATO_PEDIDO</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <step>
-    <name>TB_DIM_CATEGORIA_PRODUTO</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>DW</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema>DBO</schema>
-      <table>TB_DIM_CATEGORIA_PRODUTO</table>
-      <orderby>SRK_CATEGORIA_PRODUTO DESC</orderby>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
-      <key>
-        <name>COD_CATEGORIA_PRODUTO_OLTP</name>
-        <field>COD_CATEGORIA_PRODUTO_NK</field>
-        <condition>=</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>SRK_CATEGORIA_PRODUTO</name>
-        <rename>SRK_CATEGORIA_PRODUTO</rename>
-        <default/>
-        <type>Integer</type>
-      </value>
-    </lookup>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>896</xloc>
-      <yloc>160</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>TB_DIM_PRODUTO</name>
-    <type>InsertUpdate</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>DW</connection>
-    <commit>100</commit>
-    <update_bypassed>N</update_bypassed>
-    <lookup>
-      <schema>DBO</schema>
-      <table>TB_DIM_PRODUTO</table>
-      <key>
-        <name>COD_PRODUTO_OLTP</name>
-        <field>COD_PRODUTO_NK</field>
-        <condition>=</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>SRK_CATEGORIA_PRODUTO</name>
-        <rename>SRK_CATEGORIA_PRODUTO</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>COD_PRODUTO_NK</name>
-        <rename>COD_PRODUTO_OLTP</rename>
-        <update>Y</update>
-      </value>
-      <value>
-        <name>NOM_PRODUTO</name>
-        <rename>NOM_PRODUTO</rename>
-        <update>Y</update>
-      </value>
-    </lookup>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>1136</xloc>
-      <yloc>288</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>TB_STG_PRODUTO </name>
+    <name>ORIGEM_FATO</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -686,12 +601,27 @@
       <schema_name/>
     </partitioning>
     <connection>STG</connection>
-    <sql>SELECT
-  COD_CATEGORIA_PRODUTO_OLTP
-, COD_PRODUTO_OLTP
-, NOM_PRODUTO
-FROM dbo.TB_STG_PRODUTO
-</sql>
+    <sql>SELECT 
+YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) AS NUM_MES_PEDIDO,
+CLI.COD_ESTADO_OLTP,
+CLI.COD_CLIENTE_OLTP,
+CLI.COD_TIPO_CLIENTE_OLTP,
+I.COD_PRODUTO_OLTP,
+SUM(I.VLR_UNITARIO_ITEM * I.QTD_ITEM) VLR_PEDIDO,
+SUM (I.QTD_ITEM) QTD_ITEM_PEDIDO,
+(YEAR (GETDATE())*100 + MONTH(GETDATE())) *100 +  DAY(GETDATE()) AS DATA_CARGA
+FROM   TB_STG_ITEM_PEDIDO AS I  
+               INNER JOIN  TB_STG_PEDIDO   AS  P   ON 
+(P.COD_PEDIDO_OLTP=I.COD_PEDIDO_OLTP)
+               INNER JOIN TB_STG_CLIENTE AS CLI ON 
+(P.COD_CLIENTE_OLTP=CLI.COD_CLIENTE_OLTP)
+
+GROUP BY
+YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) ,
+CLI.COD_ESTADO_OLTP,
+CLI.COD_CLIENTE_OLTP,
+CLI.COD_TIPO_CLIENTE_OLTP,
+I.COD_PRODUTO_OLTP</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -702,34 +632,11 @@ FROM dbo.TB_STG_PRODUTO
       <value-meta>
         <type>Integer</type>
         <storagetype>normal</storagetype>
-        <name>COD_CATEGORIA_PRODUTO_OLTP</name>
+        <name>NUM_MES_PEDIDO</name>
         <length>9</length>
         <precision>0</precision>
-        <origin>TB_STG_PRODUTO </origin>
-        <comments>COD_CATEGORIA_PRODUTO_OLTP</comments>
-        <conversion_Mask>####0;-####0</conversion_Mask>
-        <decimal_symbol>,</decimal_symbol>
-        <grouping_symbol>.</grouping_symbol>
-        <currency_symbol/>
-        <trim_type>none</trim_type>
-        <case_insensitive>N</case_insensitive>
-        <collator_disabled>Y</collator_disabled>
-        <collator_strength>0</collator_strength>
-        <sort_descending>N</sort_descending>
-        <output_padding>N</output_padding>
-        <date_format_lenient>N</date_format_lenient>
-        <date_format_locale>pt_BR</date_format_locale>
-        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
-        <lenient_string_to_number>N</lenient_string_to_number>
-      </value-meta>
-      <value-meta>
-        <type>Integer</type>
-        <storagetype>normal</storagetype>
-        <name>COD_PRODUTO_OLTP</name>
-        <length>9</length>
-        <precision>0</precision>
-        <origin>TB_STG_PRODUTO </origin>
-        <comments>COD_PRODUTO_OLTP</comments>
+        <origin>ORIGEM_FATO</origin>
+        <comments>NUM_MES_PEDIDO</comments>
         <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>,</decimal_symbol>
         <grouping_symbol>.</grouping_symbol>
@@ -748,12 +655,150 @@ FROM dbo.TB_STG_PRODUTO
       <value-meta>
         <type>String</type>
         <storagetype>normal</storagetype>
-        <name>NOM_PRODUTO</name>
-        <length>40</length>
+        <name>COD_ESTADO_OLTP</name>
+        <length>2</length>
         <precision>-1</precision>
-        <origin>TB_STG_PRODUTO </origin>
-        <comments>NOM_PRODUTO</comments>
+        <origin>ORIGEM_FATO</origin>
+        <comments>COD_ESTADO_OLTP</comments>
         <conversion_Mask/>
+        <decimal_symbol>,</decimal_symbol>
+        <grouping_symbol>.</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>COD_CLIENTE_OLTP</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>COD_CLIENTE_OLTP</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>,</decimal_symbol>
+        <grouping_symbol>.</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>COD_TIPO_CLIENTE_OLTP</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>COD_TIPO_CLIENTE_OLTP</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>,</decimal_symbol>
+        <grouping_symbol>.</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>COD_PRODUTO_OLTP</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>COD_PRODUTO_OLTP</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
+        <decimal_symbol>,</decimal_symbol>
+        <grouping_symbol>.</grouping_symbol>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>BigNumber</type>
+        <storagetype>normal</storagetype>
+        <name>VLR_PEDIDO</name>
+        <length>38</length>
+        <precision>5</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>VLR_PEDIDO</comments>
+        <conversion_Mask>######0.0###################;-######0.0###################</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>BigNumber</type>
+        <storagetype>normal</storagetype>
+        <name>QTD_ITEM_PEDIDO</name>
+        <length>38</length>
+        <precision>0</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>QTD_ITEM_PEDIDO</comments>
+        <conversion_Mask>######0.0###################;-######0.0###################</conversion_Mask>
+        <decimal_symbol>.</decimal_symbol>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <trim_type>none</trim_type>
+        <case_insensitive>N</case_insensitive>
+        <collator_disabled>Y</collator_disabled>
+        <collator_strength>0</collator_strength>
+        <sort_descending>N</sort_descending>
+        <output_padding>N</output_padding>
+        <date_format_lenient>N</date_format_lenient>
+        <date_format_locale>pt_BR</date_format_locale>
+        <date_format_timezone>America/Sao_Paulo</date_format_timezone>
+        <lenient_string_to_number>N</lenient_string_to_number>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <storagetype>normal</storagetype>
+        <name>DATA_CARGA</name>
+        <length>9</length>
+        <precision>0</precision>
+        <origin>ORIGEM_FATO</origin>
+        <comments>DATA_CARGA</comments>
+        <conversion_Mask>####0;-####0</conversion_Mask>
         <decimal_symbol>,</decimal_symbol>
         <grouping_symbol>.</grouping_symbol>
         <currency_symbol/>
@@ -778,8 +823,276 @@ FROM dbo.TB_STG_PRODUTO
       </output>
     </remotesteps>
     <GUI>
-      <xloc>640</xloc>
-      <yloc>304</yloc>
+      <xloc>192</xloc>
+      <yloc>288</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_DIM_ESTADO</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>DBO</schema>
+      <table>TB_DIM_ESTADO</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>COD_ESTADO_OLTP</name>
+        <field>COD_ESTADO_NK</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>SRK_ESTADO</name>
+        <rename>SRK_ESTADO</rename>
+        <default>-1</default>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>400</xloc>
+      <yloc>100</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_DIM_CLIENTE</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>DBO</schema>
+      <table>TB_DIM_CLIENTE</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>COD_CLIENTE_OLTP</name>
+        <field>COD_CLIENTE_NK</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>SRK_CLIENTE</name>
+        <rename>SRK_CLIENTE</rename>
+        <default>-1</default>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>600</xloc>
+      <yloc>100</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_DIM_TIPO_CLIENTE</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>DBO</schema>
+      <table>TB_DIM_TIPO_CLIENTE</table>
+      <orderby>SRK_TIPO_CLIENTE DESC</orderby>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>COD_TIPO_CLIENTE_OLTP</name>
+        <field>COD_TIPO_CLIENTE_NK</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>SRK_TIPO_CLIENTE</name>
+        <rename>SRK_TIPO_CLIENTE</rename>
+        <default>-1</default>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>800</xloc>
+      <yloc>100</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_DIM_PRODUTO</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>DBO</schema>
+      <table>TB_DIM_PRODUTO</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>COD_PRODUTO_OLTP</name>
+        <field>COD_PRODUTO_NK</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>SRK_PRODUTO</name>
+        <rename>SRK_PRODUTO</rename>
+        <default>-1</default>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>1000</xloc>
+      <yloc>100</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_FATO_PEDIDO</name>
+    <type>TableOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <schema>DBO</schema>
+    <table>TB_FATO_PEDIDO</table>
+    <commit>1000</commit>
+    <truncate>Y</truncate>
+    <ignore_errors>N</ignore_errors>
+    <use_batch>Y</use_batch>
+    <specify_fields>Y</specify_fields>
+    <partitioning_enabled>N</partitioning_enabled>
+    <partitioning_field/>
+    <partitioning_daily>N</partitioning_daily>
+    <partitioning_monthly>Y</partitioning_monthly>
+    <tablename_in_field>N</tablename_in_field>
+    <tablename_field/>
+    <tablename_in_table>Y</tablename_in_table>
+    <return_keys>N</return_keys>
+    <return_field/>
+    <fields>
+      <field>
+        <column_name>SRK_PRODUTO</column_name>
+        <stream_name>SRK_PRODUTO</stream_name>
+      </field>
+      <field>
+        <column_name>SRK_TIPO_CLIENTE</column_name>
+        <stream_name>SRK_TIPO_CLIENTE</stream_name>
+      </field>
+      <field>
+        <column_name>SRK_CLIENTE</column_name>
+        <stream_name>SRK_CLIENTE</stream_name>
+      </field>
+      <field>
+        <column_name>SRK_ESTADO</column_name>
+        <stream_name>SRK_ESTADO</stream_name>
+      </field>
+      <field>
+        <column_name>DATA_CARGA</column_name>
+        <stream_name>DATA_CARGA</stream_name>
+      </field>
+      <field>
+        <column_name>QTD_ITEM_PEDIDO</column_name>
+        <stream_name>QTD_ITEM_PEDIDO</stream_name>
+      </field>
+      <field>
+        <column_name>VLR_PEDIDO</column_name>
+        <stream_name>VLR_PEDIDO</stream_name>
+      </field>
+      <field>
+        <column_name>NUM_MES_PEDIDO</column_name>
+        <stream_name>NUM_MES_PEDIDO</stream_name>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>1232</xloc>
+      <yloc>288</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
