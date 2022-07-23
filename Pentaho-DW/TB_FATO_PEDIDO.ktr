@@ -431,7 +431,7 @@
     <created_date>2022/07/21 22:11:34.504</created_date>
     <modified_user>-</modified_user>
     <modified_date>2022/07/21 22:11:34.504</modified_date>
-    <key_for_session_key/>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -611,10 +611,8 @@ SUM(I.VLR_UNITARIO_ITEM * I.QTD_ITEM) VLR_PEDIDO,
 SUM (I.QTD_ITEM) QTD_ITEM_PEDIDO,
 (YEAR (GETDATE())*100 + MONTH(GETDATE())) *100 +  DAY(GETDATE()) AS DATA_CARGA
 FROM   TB_STG_ITEM_PEDIDO AS I  
-               INNER JOIN  TB_STG_PEDIDO   AS  P   ON 
-(P.COD_PEDIDO_OLTP=I.COD_PEDIDO_OLTP)
-               INNER JOIN TB_STG_CLIENTE AS CLI ON 
-(P.COD_CLIENTE_OLTP=CLI.COD_CLIENTE_OLTP)
+INNER JOIN  TB_STG_PEDIDO   AS  P   ON (P.COD_PEDIDO_OLTP=I.COD_PEDIDO_OLTP)
+INNER JOIN TB_STG_CLIENTE AS CLI ON (P.COD_CLIENTE_OLTP=CLI.COD_CLIENTE_OLTP)
 
 GROUP BY
 YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) ,
@@ -622,7 +620,7 @@ CLI.COD_ESTADO_OLTP,
 CLI.COD_CLIENTE_OLTP,
 CLI.COD_TIPO_CLIENTE_OLTP,
 I.COD_PRODUTO_OLTP</sql>
-    <limit>0</limit>
+    <limit/>
     <lookup/>
     <execute_each_row>N</execute_each_row>
     <variables_active>N</variables_active>
@@ -823,56 +821,8 @@ I.COD_PRODUTO_OLTP</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>192</xloc>
-      <yloc>288</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>TB_DIM_ESTADO</name>
-    <type>DBLookup</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>DW</connection>
-    <cache>N</cache>
-    <cache_load_all>N</cache_load_all>
-    <cache_size>0</cache_size>
-    <lookup>
-      <schema>DBO</schema>
-      <table>TB_DIM_ESTADO</table>
-      <orderby/>
-      <fail_on_multiple>N</fail_on_multiple>
-      <eat_row_on_failure>N</eat_row_on_failure>
-      <key>
-        <name>COD_ESTADO_OLTP</name>
-        <field>COD_ESTADO_NK</field>
-        <condition>=</condition>
-        <name2/>
-      </key>
-      <value>
-        <name>SRK_ESTADO</name>
-        <rename>SRK_ESTADO</rename>
-        <default>-1</default>
-        <type>Integer</type>
-      </value>
-    </lookup>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
       <xloc>400</xloc>
-      <yloc>100</yloc>
+      <yloc>368</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -919,13 +869,13 @@ I.COD_PRODUTO_OLTP</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>600</xloc>
-      <yloc>100</yloc>
+      <xloc>720</xloc>
+      <yloc>112</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>TB_DIM_TIPO_CLIENTE</name>
+    <name>TB_DIM_ESTADO</name>
     <type>DBLookup</type>
     <description/>
     <distribute>Y</distribute>
@@ -941,19 +891,19 @@ I.COD_PRODUTO_OLTP</sql>
     <cache_size>0</cache_size>
     <lookup>
       <schema>DBO</schema>
-      <table>TB_DIM_TIPO_CLIENTE</table>
-      <orderby>SRK_TIPO_CLIENTE DESC</orderby>
+      <table>TB_DIM_ESTADO</table>
+      <orderby/>
       <fail_on_multiple>N</fail_on_multiple>
       <eat_row_on_failure>N</eat_row_on_failure>
       <key>
-        <name>COD_TIPO_CLIENTE_OLTP</name>
-        <field>COD_TIPO_CLIENTE_NK</field>
+        <name>COD_ESTADO_OLTP</name>
+        <field>COD_ESTADO_NK</field>
         <condition>=</condition>
         <name2/>
       </key>
       <value>
-        <name>SRK_TIPO_CLIENTE</name>
-        <rename>SRK_TIPO_CLIENTE</rename>
+        <name>SRK_ESTADO</name>
+        <rename>SRK_ESTADO</rename>
         <default>-1</default>
         <type>Integer</type>
       </value>
@@ -967,8 +917,8 @@ I.COD_PRODUTO_OLTP</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>800</xloc>
-      <yloc>100</yloc>
+      <xloc>512</xloc>
+      <yloc>112</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1015,8 +965,56 @@ I.COD_PRODUTO_OLTP</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>1000</xloc>
-      <yloc>100</yloc>
+      <xloc>1120</xloc>
+      <yloc>112</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>TB_DIM_TIPO_CLIENTE</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>DW</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>DBO</schema>
+      <table>TB_DIM_TIPO_CLIENTE</table>
+      <orderby>SRK_TIPO_CLIENTE DESC</orderby>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>COD_TIPO_CLIENTE_OLTP</name>
+        <field>COD_TIPO_CLIENTE_NK</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>SRK_TIPO_CLIENTE</name>
+        <rename>SRK_TIPO_CLIENTE</rename>
+        <default>-1</default>
+        <type>Integer</type>
+      </value>
+    </lookup>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>912</xloc>
+      <yloc>112</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1092,7 +1090,7 @@ I.COD_PRODUTO_OLTP</sql>
     </remotesteps>
     <GUI>
       <xloc>1232</xloc>
-      <yloc>288</yloc>
+      <yloc>368</yloc>
       <draw>Y</draw>
     </GUI>
   </step>

@@ -58,5 +58,6 @@ SET IDENTITY_INSERT tb_dim_estado OFF;
 
 insert into tb_dim_tipo_cliente values (-1, -1, 'NÃO CADASTRADO',NULL,NULL,NULL);
 
+select * from dbo.tb_fato_pedido
 
 
