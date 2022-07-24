@@ -625,10 +625,13 @@ I.COD_PRODUTO_OLTP,
 SUM(I.VLR_UNITARIO_ITEM * I.QTD_ITEM) VLR_PEDIDO,
 SUM (I.QTD_ITEM) QTD_ITEM_PEDIDO,
 (YEAR (GETDATE())*100 + MONTH(GETDATE())) *100 +  DAY(GETDATE()) AS DATA_CARGA
+
 FROM   TB_STG_ITEM_PEDIDO AS I  
 INNER JOIN  TB_STG_PEDIDO   AS  P   ON (P.COD_PEDIDO_OLTP=I.COD_PEDIDO_OLTP)
 INNER JOIN TB_STG_CLIENTE AS CLI ON (P.COD_CLIENTE_OLTP=CLI.COD_CLIENTE_OLTP)
-WHERE YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) = ${MESANO_PEDIDO}
+
+--WHERE YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) = ${MESANO_PEDIDO}
+
 GROUP BY
 YEAR(P.DATA_PEDIDO) * 100 + MONTH(P.DATA_PEDIDO) ,
 CLI.COD_ESTADO_OLTP,
@@ -638,7 +641,7 @@ I.COD_PRODUTO_OLTP</sql>
     <limit/>
     <lookup/>
     <execute_each_row>N</execute_each_row>
-    <variables_active>Y</variables_active>
+    <variables_active>N</variables_active>
     <lazy_conversion_active>N</lazy_conversion_active>
     <cached_row_meta_active>N</cached_row_meta_active>
     <row-meta>
@@ -1123,10 +1126,10 @@ I.COD_PRODUTO_OLTP</sql>
     <connection>DW</connection>
     <execute_each_row>N</execute_each_row>
     <single_statement>N</single_statement>
-    <replace_variables>Y</replace_variables>
+    <replace_variables>N</replace_variables>
     <quoteString>N</quoteString>
     <sql>DELETE FROM TB_FATO_PEDIDO
-WHERE DATA_CARGA=${DATA_CARGA}</sql>
+</sql>
     <set_params>N</set_params>
     <insert_field/>
     <update_field/>
